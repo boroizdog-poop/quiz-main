@@ -9,6 +9,8 @@ Mở `index.html` bằng Chrome, Edge hoặc Firefox. Không cần cài thư vi�
 - Bấm **Vào trận**, chọn đáp án bằng chuột hoặc phím **1–4**.
 - Mỗi trận có đúng **3 câu**, thứ tự câu và A–D cố định như đề. Đáp án đúng lần lượt **1A, 2C, 3B**.
 - Ba vũ khí ảnh thật (búa tạ khổng lồ, chảo gang phản lực và RPG) được bốc ngẫu nhiên, không trùng trong một trận.
+- Màn chờ là bố cục **SINH VIÊN TMU — VS — GIÁO TRÌNH**, tên lớn phía trên hai nhân vật và nút **VÀO TRẬN** ở giữa bên dưới.
+- Khi chuyển sang câu 2 và 3, sinh viên xoay một vòng để lấy vũ khí mới; đáp án chỉ mở sau cú xoay. RPG có tiếng lên đạn trước khi bắn, đại bác boss được phóng lớn.
 - Đúng thì đánh boss mất 34 máu. Sai thì boss đánh bạn mất 34 máu.
 - Đúng ít nhất **2/3 câu** để mở đòn kết liễu. Bấm **Tung đòn cuối**: nhân vật lấy đà, ném đạo cụ quá khổ, boss bị hất bay và quay khỏi màn hình.
 - Kết quả có **Tái đấu** và **Xem lại đáp án**. Nhạc và hiệu ứng bắt đầu khi bấm **Vào trận**. Nút tắt/bật âm thanh ở góc dưới phải.
@@ -34,6 +36,7 @@ Mở `index.html` bằng Chrome, Edge hoặc Firefox. Không cần cài thư vi�
 - Đã bỏ tiếng hurt/oof cũ (tiếng người chơi gọi là “oops”); các tiếng meme, nhạc nền, vỡ kính, GET OUT và yay vẫn giữ nguyên.
 - Hiệu ứng phát đủ bản gốc, bỏ các giới hạn cắt tiếng quá sớm. Đại bác dùng ba nhịp âm cách nhau 420ms thay vì dồn nhiều tiếng ngắn.
 - Bom: tiếng nổ rồi **Flashbang** sau 300ms. Lọ độc: tiếng **kính vỡ** đúng lúc chạm người chơi, sau 220ms mới đến âm thanh thuốc Minecraft.
+- Chỉ giảm tiếng nổ lúc sinh viên bắn RPG, boss thả bom và boss bắn đại bác khoảng 40%; các tiếng khác, gồm Flashbang và va chạm kết liễu, giữ nguyên âm lượng.
 - Bom và RPG dùng quả cầu lửa cắt trực tiếp từ video tham khảo ở giây 41: nền trong suốt, lõi vàng trắng và viền cam; bung theo vài nhịp ảnh dán, không thêm quầng sáng CSS.
 - Kết liễu phát lần lượt: **GET OUT!** → va chạm → **Disappearing Scream** khi boss bay đi → **yay** khi thắng; chờ tiếng trước kết thúc rồi mới phát tiếng sau.
 - File nằm trong `assets/audio/`. Muốn thay tiếng, thay MP3 tương ứng; giữ tên file thì không cần sửa mã.

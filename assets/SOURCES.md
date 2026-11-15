@@ -40,6 +40,7 @@ Downloaded for local prototype reference. Reuse licenses have not been establish
   SFX are downloaded reference/meme assets for this local prototype; Myinstants availability does not establish redistribution rights.
 
 ## Additional requested meme SFX
+- audio/gun-reload.mp3: https://www.myinstants.com/media/sounds/gunreload.mp3 (source page: https://www.myinstants.com/en/instant/reload-gun-47477/). Played at reduced volume before the student's RPG fires.
 - audio/metal-bar.mp3: https://www.myinstants.com/media/sounds/metal-bar.mp3 — ruler impact.
 - audio/doge-bonk.mp3: https://www.myinstants.com/media/sounds/bonk_7zPAD7C.mp3 — pen impact.
 - audio/goofy-bonk.mp3: https://www.myinstants.com/media/sounds/goofy-bonk.mp3 — shoe impact / losing slapstick.

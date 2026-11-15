@@ -117,7 +117,7 @@
   }
   async function explosionAt(x,y,size=310) {
     const blast=effectNode('img','blast-image',x,y);blast.src='assets/boss-weapons/explosion-video-cutout.png';blast.alt='';blast.style.width=size+'px';blast.style.height=size+'px';
-    sounds.play('explosion',{volume:size>200?.52:.25});
+    sounds.play('explosion',{volume:size>200?.32:.17});
     await Promise.all([
       animate(blast,[
         {opacity:1,transform:'translate(-50%,-50%) scale(.3) rotate(-7deg)',easing:'steps(2,end)'},
@@ -139,16 +139,18 @@
     bossWeapon.hidden=false;bossWeapon.className='boss-weapon '+move.kind;bossWeapon.innerHTML=`<img src="${move.src}" alt="">`;
     const bx=ui.boss.offsetLeft+ui.boss.offsetWidth*.2;
     const by=ui.boss.offsetTop+ui.boss.offsetHeight*.48;
-    bossWeapon.style.left=(bx-(move.kind==='cannon'?170:20))+'px';bossWeapon.style.top=by+'px';
+    const cannonWidth=Math.min(480,Math.max(330,innerWidth*.33));
+    const cannonX=bx-cannonWidth*.72,cannonY=by-cannonWidth*.15;
+    bossWeapon.style.left=(move.kind==='cannon'?cannonX:bx-20)+'px';bossWeapon.style.top=(move.kind==='cannon'?cannonY:by)+'px';
     const px=ui.player.offsetLeft+ui.player.offsetWidth*.5;
     const py=ui.player.offsetTop+ui.player.offsetHeight*.48;
     await animate(bossWeapon,[{opacity:0,transform:'scale(.3) rotate(15deg)'},{opacity:1,transform:'scale(1) rotate(0)'}],300);
     await wait(180);
     if(move.kind==='cannon') {
-      const sx=bx-155,sy=by+20;
+      const sx=cannonX+20,sy=cannonY+cannonWidth*.22;
       await Promise.all(Array.from({length:7},async(_,i)=>{
         await audioWait(i*140);
-        if(i===0||i===3||i===6)sounds.play('boom',{volume:.18,maxVoices:3});
+        if(i===0||i===3||i===6)sounds.play('boom',{volume:.11,maxVoices:3});
         const shot=effectNode('span','grade-shot',sx,sy);shot.textContent='F';
         await animate(shot,[{opacity:1,transform:'translate(0,0) rotate(-15deg)'},{opacity:1,transform:`translate(${(px-sx)*.5}px,${(py-sy)*.5-25}px) rotate(${i*31}deg)`,offset:.5},{opacity:1,transform:`translate(${px-sx+(i%3-1)*24}px,${py-sy+(i%2)*20}px) rotate(${i*65}deg)`}],460);
         shot.remove();
@@ -201,27 +203,39 @@
     ui['review-toggle'].textContent='Xem lại đáp án'; ui['move-banner'].textContent='';
     ui.quiz.hidden=false; health(); showQuestion();
   }
-  function showQuestion() {
-    resetMemes();setState('question'); idle(true); weapon=weaponDeck[round];
+  async function showQuestion() {
+    const spinning=round>0;
+    resetMemes();setState(spinning?'equipping':'question'); idle(!spinning); weapon=weaponDeck[round];
     ui.round.textContent=`LƯỢT ${round+1} / 3`;
     ui['question-number'].textContent=`CÂU 0${round+1} / 03`;
     ui.question.textContent=questions[round].question;
     ui.feedback.hidden=true; ui.feedback.replaceChildren(); ui.next.hidden=true;
     ui['quiz-hint'].textContent='Đúng: boss mất 34 máu. Sai: bạn mất 34 máu. Đủ 2 câu đúng để tung đòn cuối.';
-    ui['held-prop'].innerHTML=propMarkup(weapon);
-    ui['held-prop'].className='held-prop weapon-'+weapon.kind;
-    game.dataset.playerWeapon=weapon.kind;
+    const equipWeapon=()=>{
+      ui['held-prop'].innerHTML=propMarkup(weapon);
+      ui['held-prop'].className='held-prop weapon-'+weapon.kind;
+      game.dataset.playerWeapon=weapon.kind;
+    };
+    if(!spinning)equipWeapon();
     ui.options.replaceChildren();
     questions[round].options.forEach((option,index)=>{
       const button=document.createElement('button'); button.type='button'; button.className='option';
       const key=document.createElement('span'); key.className='option-key'; key.textContent='ABCD'[index]; key.setAttribute('aria-hidden','true');
       const text=document.createElement('span'); text.textContent=option;
       button.append(key,text); button.dataset.answer=option;
+      button.disabled=spinning;
       button.addEventListener('click',()=>answer(option)); ui.options.append(button);
     });
-    if (round>0) ui.options.querySelector('button').focus({preventScroll:true});
     syncLayout();
     requestAnimationFrame(syncLayout);
+    if(spinning){
+      await animate(ui.player,[{transform:'rotate(-2deg)'},{transform:'translateY(-25px) rotate(178deg)'}],290);
+      equipWeapon();
+      await animate(ui.player,[{transform:'translateY(-25px) rotate(178deg)'},{transform:'rotate(358deg)'}],330);
+      idle(true);setState('question');
+      for(const button of ui.options.children)button.disabled=false;
+      ui.options.querySelector('button').focus({preventScroll:true});
+    }
   }
   async function impact(target,text,damage) {
     const bounds=ui.arena.getBoundingClientRect(); const victim=target.getBoundingClientRect();
@@ -244,6 +258,13 @@
       meme('attack','player',false);
       ui['move-banner'].textContent=weapon.call;
       pose('raise');
+      if(weapon.kind==='rocket'){
+        const reload=sounds.play('gun-reload',{volume:.42,maxVoices:1});
+        await Promise.all([
+          reload?.finished,
+          animate(ui['held-prop'],[{translate:'0 0'},{translate:'-18px 10px',offset:.35},{translate:'0 0'}],650)
+        ]);
+      }
       await wait(330);
       const startX=ui.player.offsetLeft+ui.player.offsetWidth*(weapon.kind==='rocket'?1.1:.72);
       const startY=ui.player.offsetTop+ui.player.offsetHeight*(weapon.kind==='rocket'?.4:.25);
@@ -257,7 +278,7 @@
       ui.projectile.style.left=startX+'px';ui.projectile.style.top=startY+'px';
       if(weapon.kind==='rocket'){
         const muzzle=effectNode('img','muzzle-flash',startX-20,startY-25);muzzle.src='assets/boss-weapons/explosion-cutout.png';
-        sounds.play('boom',{volume:.22});
+        sounds.play('boom',{volume:.13});
         await Promise.all([
           animate(ui.player,[{transform:'rotate(-2deg)'},{transform:'translateX(-30px) rotate(-13deg)'},{transform:'rotate(-2deg)'}],350),
           animate(ui.projectile,[{opacity:1,transform:'translate(0,0) scale(.9)'},{opacity:1,transform:`translate(${dx}px,${dy}px) scale(1.2)`}],430,{easing:'cubic-bezier(.3,0,.8,.4)'})

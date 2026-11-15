@@ -2,7 +2,7 @@
 
 // Local media files work both on a web server and when index.html is opened directly.
 window.GameAudio = (() => {
-  const files={boom:'vine-boom.mp3',explosion:'explosion.mp3',potion:'potion.mp3',yay:'yay.mp3','metal-bar':'metal-bar.mp3','doge-bonk':'doge-bonk.mp3','goofy-bonk':'goofy-bonk.mp3',flashbang:'flashbang.mp3','disappearing-scream':'disappearing-scream.mp3','get-out':'get-out.mp3','glass-break':'glass-break.mp3'};
+  const files={'gun-reload':'gun-reload.mp3',boom:'vine-boom.mp3',explosion:'explosion.mp3',potion:'potion.mp3',yay:'yay.mp3','metal-bar':'metal-bar.mp3','doge-bonk':'doge-bonk.mp3','goofy-bonk':'goofy-bonk.mp3',flashbang:'flashbang.mp3','disappearing-scream':'disappearing-scream.mp3','get-out':'get-out.mp3','glass-break':'glass-break.mp3'};
   const templates=new Map();
   const voices=new Set();
   const failures=[];
