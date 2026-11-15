@@ -150,7 +150,7 @@
       const sx=cannonX+20,sy=cannonY+cannonWidth*.22;
       await Promise.all(Array.from({length:7},async(_,i)=>{
         await audioWait(i*140);
-        if(i===0||i===3||i===6)sounds.play('boom',{volume:.11,maxVoices:3});
+        if(i===0||i===3||i===6)sounds.play('boom',{volume:.4,maxVoices:3});
         const shot=effectNode('span','grade-shot',sx,sy);shot.textContent='F';
         await animate(shot,[{opacity:1,transform:'translate(0,0) rotate(-15deg)'},{opacity:1,transform:`translate(${(px-sx)*.5}px,${(py-sy)*.5-25}px) rotate(${i*31}deg)`,offset:.5},{opacity:1,transform:`translate(${px-sx+(i%3-1)*24}px,${py-sy+(i%2)*20}px) rotate(${i*65}deg)`}],460);
         shot.remove();
