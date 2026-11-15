@@ -25,9 +25,9 @@ window.GameAudio = (() => {
   function setMusicVolume(value) {musicVolume=Math.max(0,Math.min(1,value));music.volume=musicVolume*duckFactor;}
   function setEffectsVolume(value) {effectsVolume=Math.max(0,Math.min(1,value));}
   function startMusic() {
-    if(!enabled||!started||document.hidden||!document.getElementById('intro').hidden)return;
+    if(!enabled||!started||document.hidden)return;
     music.play().then(()=>record('music-start',{track})).catch(error=>{
-      if(error.name!=='AbortError')fail('music-play',error);
+      if(!['AbortError','NotAllowedError'].includes(error.name))fail('music-play',error);
     });
   }
   function stop(voice,reason='stopped') {
@@ -76,7 +76,6 @@ window.GameAudio = (() => {
     return {finished:voice.finished};
   }
   function begin() {
-    if(!document.getElementById('intro').hidden)return;
     started=true;clearEffects();clearTimeout(duckTimer);duckFactor=1;setMusicVolume(musicVolume);
     for(const media of templates.values()){media.preload='auto';if(media.readyState===0)media.load();}
     startMusic();
@@ -99,6 +98,11 @@ window.GameAudio = (() => {
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden){music.pause();clearEffects();}else startMusic();
   });
+  // Browsers may require the first user gesture before audible music can start.
+  const unlockMusic=()=>{if(music.paused)startMusic();};
+  document.addEventListener('pointerdown',unlockMusic,{capture:true});
+  document.addEventListener('keydown',unlockMusic,{capture:true});
+  started=true;music.preload='auto';startMusic();
   return {play,begin,duck,setEnabled,setPhase,setMusicVolume,setEffectsVolume,
     get enabled(){return enabled;},
     get status(){return {enabled,started,track,phase,musicPlaying:!music.paused,musicTime:music.currentTime,musicVolume,effectsVolume,activeEffects:voices.size,fadingEffects:[...voices].filter(v=>v.fading).length,failures:[...failures],recent:[...recent],completions:[...completions]};}

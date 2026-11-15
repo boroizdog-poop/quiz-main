@@ -33,13 +33,15 @@ let chrome,server,socket;
   await c('Runtime.enable');await c('Page.enable');await c('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
   await c('Page.navigate',{url:`http://127.0.0.1:${port}/`});await until('!!document.getElementById("start")');
   await ev('document.fonts.ready');await c('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
-  assert.equal(await ev('window.GameAudio.status.started'),false);
-  assert.equal(await ev('document.getElementById("background-music").paused'),true,'No autoplay before starting');
+  assert.equal(await ev('window.GameAudio.status.started'),true,'Music is initialized on page entry');
   await ev('window.GameAudio.begin();window.GameAudio.setPhase("animating");window.GameAudio.play("get-out");document.getElementById("sound").click();document.getElementById("sound").click()');
   await sleep(800);
-  assert.equal(await ev('window.GameAudio.status.started'),false,'Visible intro blocks audio session');
+  assert.equal(await ev('window.GameAudio.status.started'),true,'Music can start before entering battle');
   assert.equal(await ev('window.GameAudio.status.activeEffects'),0,'Visible intro blocks even an accidental SFX request');
-  assert.equal(await ev('document.getElementById("background-music").paused&&document.getElementById("background-music").currentTime===0'),true,'Intro remains silent after sound toggles');
+  await until('window.GameAudio.status.musicPlaying&&window.GameAudio.status.musicTime>.1');
+  assert.equal(await ev('!document.getElementById("intro").hidden'),true,'Music plays on the waiting screen');
+  assert.deepEqual(await ev('window.GameAudio.status.failures'),[],'Autoplay restrictions are handled without errors');
+  if(process.argv.includes('--audio-intro')){console.log('PASS intro music before battle, mute/unmute, no combat SFX during intro');return;}
   await ev('document.getElementById("start").click()');
   await until('window.GameAudio.status.musicPlaying&&window.GameAudio.status.musicTime>.1');
   await sleep(400);
@@ -189,6 +191,6 @@ let chrome,server,socket;
   await screenshot('playing-local.png');
   assert.equal(errors.length,0,JSON.stringify(errors));
   fs.writeFileSync(path.join(root,'shots',process.argv.includes('--visual-only')?'visual-verification.json':'verification.json'),JSON.stringify({passed:true,answerPatterns:process.argv.includes('--visual-only')?2:8,fixedAnswers:'A-C-B',desktopWidths:[1440,1280,1024],normalFinisher:true,memeFacesOnly:true,removedChatAndStatus:true,localFonts:['Nunito','Baloo 2'],audioFiles:12,cleanMusicAtStart:true,sfxOnlyDuringActions:true,getOutFinisher:true,pixelHearts:true,bossMoves:['cannon','bomb','poison'],redDamageBoth:true,consoleErrors:errors},null,2));
-  console.log('PASS full-length glass/Metal Bar with soft tails, sequential GET OUT/hit/scream/yay, 1x audio, silent intro, upgraded weapons, direct local HTML, A/C/B');
+  console.log('PASS full-length glass/Metal Bar with soft tails, sequential GET OUT/hit/scream/yay, 1x audio, intro background music, upgraded weapons, direct local HTML, A/C/B');
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(()=>{socket?.close();chrome?.kill();server?.close();});
 
