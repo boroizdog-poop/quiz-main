@@ -50,6 +50,8 @@ Downloaded for local prototype reference. Reuse licenses have not been establish
 - audio/glass-break.mp3: https://www.myinstants.com/media/sounds/glass-breaking-sound-effect_wLZSIYn.mp3 — poison bottle impact.
 
 ## Student arsenal and user-added faces
+- player-weapons/tank.png: https://pngimg.com/uploads/tank/tank_PNG101036.png (https://pngimg.com/image/101036), photographic PL-01 tank cutout. CC BY-NC 4.0; displayed flipped horizontally with the existing student cutout riding on top.
+- audio/tank-engine.mp3: https://www.myinstants.com/media/sounds/m1-abrams-tank-startup.mp3 (https://www.myinstants.com/en/instant/m1-abrams-tank-startup-60924/). Tank engine startup for the finisher, mixed quietly and faded out after the charge.
 - boss-weapons/explosion-video-cutout.png: cropped from the user's supplied fighting-game video at 41 seconds, with exterior white background removed. Used for bomb and RPG blasts to match the reference; original internal yellow/white fire preserved.
 - player-weapons/pan.png: https://pngimg.com/uploads/frying_pan/frying_pan_PNG8351.png
 - player-weapons/rpg.png: https://pngimg.com/uploads/rpg/rpg_PNG26668.png

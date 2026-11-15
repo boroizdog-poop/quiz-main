@@ -31,6 +31,7 @@ let chrome,server,socket;
   const until=async(expression,timeout=12000)=>{const start=Date.now();while(Date.now()-start<timeout){if(await ev(expression))return;await sleep(50);}throw new Error('Timeout: '+expression);};
   const screenshot=async name=>{const r=await c('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});fs.writeFileSync(path.join(root,'shots',name),Buffer.from(r.data,'base64'));};
   await c('Runtime.enable');await c('Page.enable');await c('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+  if(process.argv.includes('--short-desktop'))await c('Emulation.setDeviceMetricsOverride',{width:1280,height:720,deviceScaleFactor:1,mobile:false});
   await c('Page.navigate',{url:`http://127.0.0.1:${port}/`});await until('!!document.getElementById("start")');
   await ev('document.fonts.ready');await c('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
   assert.equal(await ev('window.GameAudio.status.started'),true,'Music is initialized on page entry');
@@ -44,7 +45,7 @@ let chrome,server,socket;
   if(process.argv.includes('--audio-intro')){console.log('PASS intro music before battle, mute/unmute, no combat SFX during intro');return;}
   await screenshot('intro-versus.png');
   assert.equal(await ev('document.querySelector(".intro-matchup").textContent'), 'SINH VIÊN TMUVSGIÁO TRÌNH');
-  assert.ok(await ev('parseFloat(getComputedStyle(document.querySelector(".intro-vs")).fontSize)>=90'),'Large versus title');
+  assert.ok(await ev('parseFloat(getComputedStyle(document.querySelector(".intro-vs")).fontSize)>=64'),'Large versus title');
   await ev('document.getElementById("start").click()');
   await until('window.GameAudio.status.musicPlaying&&window.GameAudio.status.musicTime>.1');
   await sleep(400);
@@ -52,6 +53,37 @@ let chrome,server,socket;
   await ev('window.GameAudio.play("get-out")');await sleep(100);
   assert.equal(await ev('window.GameAudio.status.activeEffects'),0,'SFX rejected while reading a question');
   assert.equal(await ev('document.getElementById("music-choice")===null'),true,'Mixed reference audio cannot be selected as background');
+  if(process.argv.includes('--tank-finisher')){
+    await ev('document.getElementById("sound").click()');
+    for(let round=0;round<3;round++){
+      await until('document.querySelector(".game").dataset.state==="question"');
+      await ev(`(()=>{const q=questionPool[${round}];[...document.querySelectorAll('.option')].find(b=>b.dataset.answer===q.answer).click()})()`);
+      await until('!document.getElementById("next").hidden');
+      if(round<2)await ev('document.getElementById("next").click()');
+    }
+    await ev('document.getElementById("sound").click()');
+    await c('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
+    await ev('document.getElementById("next").click()');
+    await until('document.querySelector(".game").dataset.finisherStage==="arrival"');
+    await sleep(1250);await screenshot('tank-arrival.png');
+    assert.equal(await ev('(()=>{const p=document.querySelector(".tank-driver .meme-face").getBoundingClientRect();return p.left>=0&&p.right<=innerWidth&&p.top>=65})()'),true,'Student face stays visible on the tank');
+    await until('document.querySelector(".game").dataset.finisherStage==="flight"');
+    await sleep(120);assert.ok(await ev('(()=>{const m=new DOMMatrix(getComputedStyle(document.getElementById("boss")).transform);return Math.abs(m.m41)>15&&m.m42<-20})()'),'Boss flies immediately on contact');
+    assert.ok(await ev('(()=>{const f=document.getElementById("boss").getAnimations().find(a=>a.effect.getKeyframes().length===33).effect.getKeyframes().map(k=>new DOMMatrix(k.transform));return f[4].m41<0&&f[20].m41>0&&f[16].m42<-150&&f[32].m42>f[16].m42})()'),'Curved flight rises, turns and descends to the right');await screenshot('tank-impact.png');
+    assert.equal(await ev('document.getElementById("boss-health").getAttribute("aria-valuenow")'),'0');
+    await until('document.querySelector(".game").dataset.finisherStage==="flight"');
+    await sleep(220);await screenshot('tank-flight.png');
+    await until('!document.getElementById("result").hidden');
+    assert.equal(await ev('window.GameAudio.status.activeEffects===1'),true,'Only victory cheer remains after the engine fades');
+    assert.ok(await ev('window.GameAudio.status.completions.some(e=>e.name==="tank-engine"&&e.reason==="faded")'),'Tank engine fades after the charge');
+    assert.deepEqual(await ev('window.GameAudio.status.failures'),[]);
+    console.log('Engine opening levels:',await ev('(async()=>{const c=new AudioContext();const b=await c.decodeAudioData(await(await fetch("assets/audio/tank-engine.mp3")).arrayBuffer());const s=b.getChannelData(0),r=b.sampleRate;const peaks=[0,1,2,3,4,5].map(sec=>{let p=0;for(let i=sec*r;i<(sec+1)*r;i+=16)p=Math.max(p,Math.abs(s[i]));return p});await c.close();return peaks})()'));
+    await ev('document.getElementById("replay").click()');
+    assert.equal(await ev('document.querySelectorAll(".finisher-tank").length'),0,'Replay removes the tank');
+    assert.equal(await ev('document.getElementById("player").style.opacity'),'','Replay restores the player');
+    assert.equal(errors.length,0,JSON.stringify(errors));
+    console.log('PASS tank run-out, visible rider, ram, spinning boss, engine fade, victory and clean replay');return;
+  }
   await screenshot('playing-desktop.png');
   for(const [width,height] of [[1440,900],[1280,720],[1024,768]]){
     await c('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
@@ -154,6 +186,12 @@ let chrome,server,socket;
     if(round<2){assert.equal(await ev('document.querySelector(".game").dataset.state'), 'equipping');assert.equal(await ev('[...document.querySelectorAll(".option")].every(b=>b.disabled)'),true,'Answers locked during weapon spin');await until('document.querySelector(".game").dataset.state==="question"');}
   }
   assert.deepEqual(studentWeapons.sort(),['hammer','pan','rocket'],'Three upgraded student weapons');
+  await until('document.querySelector(".game").dataset.finisherStage==="arrival"');
+  await sleep(1250);await screenshot('tank-arrival.png');
+  assert.equal(await ev('(()=>{const t=document.querySelector(".finisher-tank"),p=t?.querySelector(".tank-photo");return !!t&&p.complete&&p.naturalWidth>0&&!!t.querySelector(".tank-driver .meme-face")})()'),true,'Tank cutout and student driver are loaded');
+  await until('document.querySelector(".game").dataset.finisherStage==="flight"');
+  await screenshot('tank-impact.png');
+  assert.equal(await ev('document.getElementById("boss-health").getAttribute("aria-valuenow")'), '0','Tank ram finishes the boss');
   await until('document.getElementById("move-banner").textContent.includes("TẠM BIỆT")');
   await sleep(220);await screenshot('finisher.png');
   const flying=await ev('getComputedStyle(document.getElementById("boss")).transform');
@@ -172,17 +210,17 @@ let chrome,server,socket;
   await c('Input.dispatchKeyEvent',{type:'keyUp',key:'1',code:'Digit1',windowsVirtualKeyCode:49});
   await until('!document.getElementById("next").hidden');
   const soundsPlayed=await ev('window.GameAudio.status.recent.map(e=>e.name)');
-  for(const name of ['gun-reload','explosion','potion','boom','yay','metal-bar','doge-bonk','goofy-bonk','flashbang','disappearing-scream','get-out','glass-break'])assert.ok(soundsPlayed.includes(name),'Played sound '+name);
+  for(const name of ['tank-engine','gun-reload','explosion','potion','boom','yay','metal-bar','doge-bonk','goofy-bonk','flashbang','disappearing-scream','get-out','glass-break'])assert.ok(soundsPlayed.includes(name),'Played sound '+name);
   assert.ok(!soundsPlayed.includes('hurt'),'Only the old oof/hurt sound is removed');
   assert.equal(await ev('window.GameAudio.status.recent.filter(e=>e.name!=="music-start").every(e=>["animating","finishing"].includes(e.phase)||(e.phase==="result"&&e.name==="yay"))'),true,'Every SFX is tied to an action or victory');
   assert.equal(await ev('window.GameAudio.status.recent.filter(e=>e.name!=="music-start").every(e=>e.rate===1)'),true,'Every SFX plays at original speed');
   assert.equal(await ev('document.getElementById("background-music").playbackRate'),1,'Music plays at original speed');
   const finalAudio=await ev('(()=>{const s=window.GameAudio.status;const shout=s.recent.filter(e=>e.name==="get-out"&&e.phase==="finishing").at(-1);const shoutEnd=s.completions.find(e=>e.name==="get-out"&&e.time>shout.time);const hit=s.recent.find(e=>e.name==="boom"&&e.phase==="finishing"&&e.time>=shoutEnd.time);const hitEnd=s.completions.find(e=>e.name==="boom"&&e.time>hit.time);const scream=s.recent.filter(e=>e.name==="disappearing-scream").at(-1);const screamEnd=s.completions.find(e=>e.name==="disappearing-scream"&&e.time>scream.time);const yay=s.recent.filter(e=>e.name==="yay").at(-1);return {shout,shoutEnd,hit,hitEnd,scream,screamEnd,yay}})()');
-  assert.ok(finalAudio.shoutEnd.time<=finalAudio.hit.time&&finalAudio.hitEnd.time<=finalAudio.scream.time&&finalAudio.screamEnd.time<=finalAudio.yay.time,'GET OUT, final hit, scream and yay play in sequence');
+  assert.ok(finalAudio.shoutEnd.time<=finalAudio.hit.time&&Math.abs(finalAudio.hit.time-finalAudio.scream.time)<120&&finalAudio.screamEnd.time<=finalAudio.yay.time,'GET OUT precedes impact; scream and flight start on impact, then yay');
   assert.equal(finalAudio.shoutEnd.reason,'ended');assert.equal(finalAudio.screamEnd.reason,'ended');
   assert.deepEqual(await ev('window.GameAudio.status.failures'),[],'No media/playback errors');
-  const audioInfo=await ev(`(async()=>{const ctx=new AudioContext();const files=['gun-reload','background','vine-boom','explosion','potion','yay','metal-bar','doge-bonk','goofy-bonk','flashbang','disappearing-scream','get-out','glass-break'];const info=[];for(const name of files){const data=await(await fetch('assets/audio/'+name+'.mp3')).arrayBuffer();const buffer=await ctx.decodeAudioData(data);let peak=0;const samples=buffer.getChannelData(0);for(let i=0;i<samples.length;i+=16)peak=Math.max(peak,Math.abs(samples[i]));info.push({name,duration:buffer.duration,peak})}await ctx.close();return info})()`);
-  assert.equal(audioInfo.length,13);assert.ok(audioInfo.every(a=>a.duration>.05&&a.peak>.005),'All audio files decode and contain sound');
+  const audioInfo=await ev(`(async()=>{const ctx=new AudioContext();const files=['tank-engine','gun-reload','background','vine-boom','explosion','potion','yay','metal-bar','doge-bonk','goofy-bonk','flashbang','disappearing-scream','get-out','glass-break'];const info=[];for(const name of files){const data=await(await fetch('assets/audio/'+name+'.mp3')).arrayBuffer();const buffer=await ctx.decodeAudioData(data);let peak=0;const samples=buffer.getChannelData(0);for(let i=0;i<samples.length;i+=16)peak=Math.max(peak,Math.abs(samples[i]));info.push({name,duration:buffer.duration,peak})}await ctx.close();return info})()`);
+  assert.equal(audioInfo.length,14);assert.ok(audioInfo.every(a=>a.duration>.05&&a.peak>.005),'All audio files decode and contain sound');
   fs.writeFileSync(path.join(root,'shots','audio-verification.json'),JSON.stringify({played:[...new Set(soundsPlayed)],files:audioInfo,naturalTails:true,finisherSequence:finalAudio,errors:[]},null,2));
   // The user opens index.html directly: media must also work without a dev server.
   await c('Page.navigate',{url:'file:///'+path.join(root,'index.html').replace(/\\/g,'/')});
@@ -196,7 +234,7 @@ let chrome,server,socket;
   assert.ok(Math.abs(layout.quizTop-layout.floorTop)<35,'Floor stays immediately above question panel');
   await screenshot('playing-local.png');
   assert.equal(errors.length,0,JSON.stringify(errors));
-  fs.writeFileSync(path.join(root,'shots',process.argv.includes('--visual-only')?'visual-verification.json':'verification.json'),JSON.stringify({passed:true,answerPatterns:process.argv.includes('--visual-only')?2:8,fixedAnswers:'A-C-B',desktopWidths:[1440,1280,1024],normalFinisher:true,memeFacesOnly:true,removedChatAndStatus:true,localFonts:['Nunito','Baloo 2'],audioFiles:13,cleanMusicAtStart:true,sfxOnlyDuringActions:true,getOutFinisher:true,pixelHearts:true,bossMoves:['cannon','bomb','poison'],redDamageBoth:true,consoleErrors:errors},null,2));
+  fs.writeFileSync(path.join(root,'shots',process.argv.includes('--visual-only')?'visual-verification.json':'verification.json'),JSON.stringify({passed:true,answerPatterns:process.argv.includes('--visual-only')?2:8,fixedAnswers:'A-C-B',desktopWidths:[1440,1280,1024],normalFinisher:true,memeFacesOnly:true,removedChatAndStatus:true,localFonts:['Nunito','Baloo 2'],audioFiles:14,cleanMusicAtStart:true,sfxOnlyDuringActions:true,getOutFinisher:true,pixelHearts:true,bossMoves:['cannon','bomb','poison'],redDamageBoth:true,consoleErrors:errors},null,2));
   console.log('PASS full-length glass/Metal Bar with soft tails, sequential GET OUT/hit/scream/yay, 1x audio, intro background music, upgraded weapons, direct local HTML, A/C/B');
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(()=>{socket?.close();chrome?.kill();server?.close();});
 

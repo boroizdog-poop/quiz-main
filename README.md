@@ -12,7 +12,7 @@ Mở `index.html` bằng Chrome, Edge hoặc Firefox. Không cần cài thư vi�
 - Màn chờ là bố cục **SINH VIÊN TMU — VS — GIÁO TRÌNH**, tên lớn phía trên hai nhân vật và nút **VÀO TRẬN** ở giữa bên dưới.
 - Khi chuyển sang câu 2 và 3, sinh viên xoay một vòng để lấy vũ khí mới; đáp án chỉ mở sau cú xoay. RPG có tiếng lên đạn trước khi bắn, đại bác boss được phóng lớn.
 - Đúng thì đánh boss mất 34 máu. Sai thì boss đánh bạn mất 34 máu.
-- Đúng ít nhất **2/3 câu** để mở đòn kết liễu. Bấm **Tung đòn cuối**: nhân vật lấy đà, ném đạo cụ quá khổ, boss bị hất bay và quay khỏi màn hình.
+- Đúng ít nhất **2/3 câu** để mở đòn kết liễu. Bấm **Tung đòn cuối**: sinh viên chạy ra ngoài lấy xe tăng khổng lồ, ló mặt meme trên tháp pháo rồi lao vào cán giáo trình bẹp xuống và hất bay xoay khỏi màn hình, theo nhịp cảnh cưỡi ngựa trong video tham khảo.
 - Kết quả có **Tái đấu** và **Xem lại đáp án**. Nhạc và hiệu ứng bắt đầu khi bấm **Vào trận**. Nút tắt/bật âm thanh ở góc dưới phải.
 - Đấu trường phủ toàn viewport với ảnh sân trường TMU rõ màu. Máu hiển thị bằng 10 tim pixel.
 - Hai nhân vật được phóng to, cao tối đa 480px và tự co theo phần không gian phía trên câu hỏi.
@@ -39,6 +39,7 @@ Mở `index.html` bằng Chrome, Edge hoặc Firefox. Không cần cài thư vi�
 - Chỉ giảm tiếng nổ lúc sinh viên bắn RPG, boss thả bom và boss bắn đại bác khoảng 40%; các tiếng khác, gồm Flashbang và va chạm kết liễu, giữ nguyên âm lượng.
 - Bom và RPG dùng quả cầu lửa cắt trực tiếp từ video tham khảo ở giây 41: nền trong suốt, lõi vàng trắng và viền cam; bung theo vài nhịp ảnh dán, không thêm quầng sáng CSS.
 - Kết liễu phát lần lượt: **GET OUT!** → va chạm → **Disappearing Scream** khi boss bay đi → **yay** khi thắng; chờ tiếng trước kết thúc rồi mới phát tiếng sau.
+- Xe tăng có tiếng động cơ riêng ở mức vừa phải, bắt đầu khi xe xuất hiện và tắt nhỏ dần khi dừng sau cú húc. Các hiệu ứng âm thanh khác giữ nguyên.
 - File nằm trong `assets/audio/`. Muốn thay tiếng, thay MP3 tương ứng; giữ tên file thì không cần sửa mã.
 - Nhạc chỉ bắt đầu sau thao tác của người chơi. Tắt âm thanh sẽ dừng cả nhạc lẫn các tiếng đang phát; tái đấu không chồng thêm một bản nhạc nền.
 

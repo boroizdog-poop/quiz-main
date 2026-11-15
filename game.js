@@ -191,7 +191,8 @@
     for (const animation of activeAnimations) animation.cancel();
     activeAnimations.clear();
     document.querySelectorAll('.confetti,.flash').forEach(el=>el.remove());
-    ui.player.classList.remove('damage-flash');ui.boss.classList.remove('damage-flash');
+    ui.player.classList.remove('damage-flash','running');ui.boss.classList.remove('damage-flash','tank-victim');
+    delete game.dataset.finisherStage;
     resetMemes();memeDecks.attack=[];memeDecks.hurt=[];setState('question'); questions=[...questionPool]; round=0; score=0; playerHp=100; bossHp=100; history=[]; pose('rest');
     bossMoveDeck=shuffle(bossMoves);bossWeapon.hidden=true;effects.replaceChildren();
     weaponDeck=shuffle(weapons); ui.player.removeAttribute('style'); ui.boss.removeAttribute('style');
@@ -327,35 +328,64 @@
     resetMemes();meme(score>=2?'attack':'hurt','player',false);
     ui.arena.scrollIntoView({behavior:reducedMotion.matches?'instant':'smooth',block:'center'});
     if (score>=2) {
-      ui.round.textContent='KẾT LIỄU'; ui['move-banner'].textContent='TUYỆT CHIÊU: QUA MÔN THẦN CHƯỞNG!';
-      const distance=ui.boss.offsetLeft-ui.player.offsetLeft;
-      // Three poses: wind up, hold an absurdly large prop overhead, throw.
-      pose('raise');
-      await animate(ui.player,[{transform:'rotate(-2deg)'},{transform:'translate(-12px,5px) rotate(-20deg) scale(.95,1.06)'}],480,{fill:'forwards'});
-      ui.projectile.removeAttribute('style');ui.projectile.className='projectile projectile-'+weapon.kind;ui.projectile.innerHTML=projectileMarkup(weapon); ui.projectile.style.left=(ui.player.offsetLeft+ui.player.offsetWidth*.45)+'px'; ui.projectile.style.top=(ui.player.offsetTop-20)+'px';
-      await animate(ui.projectile,[{opacity:0,transform:'scale(.4) rotate(-40deg)'},{opacity:1,transform:'translateY(-5px) scale(2.1) rotate(-25deg)'}],650,{fill:'forwards'});
-      await wait(360);
-      ui['move-banner'].textContent='GET OUT!!!';
+      ui.round.textContent='KẾT LIỄU';ui['move-banner'].textContent='ĐỢI TÍ… ĐI LẤY XE!';
+      game.dataset.finisherStage='run';
+      pose('strike');ui.player.classList.add('running');
+      const runOut=ui.player.offsetLeft+ui.player.offsetWidth+100;
+      await animate(ui.player,[
+        {opacity:1,transform:'rotate(-2deg) scaleX(-1)'},
+        {opacity:1,transform:`translate(${-runOut*.35}px,-20px) rotate(9deg) scaleX(-1)`,offset:.35},
+        {opacity:1,transform:`translate(${-runOut*.7}px,0) rotate(-8deg) scaleX(-1)`,offset:.7},
+        {opacity:0,transform:`translate(${-runOut}px,-12px) rotate(6deg) scaleX(-1)`}
+      ],780,{fill:'forwards'});
+      ui.player.classList.remove('running');pose('raise');
+      const tankWidth=Math.min(ui.arena.clientWidth*.86,1180,Math.max(360,(ui.arena.clientHeight-230)*1530/850));
+      const bossCenter=ui.boss.offsetLeft+ui.boss.offsetWidth*.5;
+      const contactX=bossCenter-tankWidth*.9;
+      const stagedX=contactX-tankWidth*.22;
+      const parkedX=contactX+ui.arena.clientWidth*.15;
+      const tank=effectNode('div','finisher-tank',0,0);
+      tank.style.removeProperty('top');tank.style.width=tankWidth+'px';
+      tank.style.bottom=(ui.arena.clientHeight-ui.player.offsetTop-ui.player.offsetHeight+6)+'px';
+      const body=document.createElement('div');body.className='tank-body revving';
+      const driver=document.createElement('div');driver.className='tank-driver';
+      driver.append(ui.player.querySelector('.character').cloneNode(true),$('player-meme').cloneNode(true));
+      for(const element of driver.querySelectorAll('[id]'))element.removeAttribute('id');
+      const tankPhoto=document.createElement('img');tankPhoto.className='tank-photo';tankPhoto.src='assets/player-weapons/tank.png';tankPhoto.alt='';
+      const sticker=document.createElement('span');sticker.className='tank-sticker';sticker.textContent='TMU · QUA MÔN';
+      body.append(driver,tankPhoto,sticker);tank.append(body);
+      game.dataset.finisherStage='arrival';ui['move-banner'].textContent='SINH VIÊN TMU TRIỆU HỒI: XE TĂNG!';
+      const engine=sounds.play('tank-engine',{volume:.32,maxVoices:1});
+      await animate(tank,[{transform:`translateX(${-tankWidth-160}px)`},{transform:`translateX(${stagedX}px)`}],1050,{easing:'cubic-bezier(.2,.6,.4,1)',fill:'forwards'});
+      ui['move-banner'].textContent='XE TĂNG QUA MÔN — GET OUT!!!';
       const shout=sounds.play('get-out',{volume:.8});await shout?.finished;
-      pose('strike');
-      await Promise.all([
-        animate(ui.player,[{transform:'translate(-12px,5px) rotate(-20deg)'},{transform:'translate(25px,-7px) rotate(23deg)'},{transform:'rotate(-2deg)'}],500,{fill:'forwards'}),
-        animate(ui.projectile,[{opacity:1,transform:'scale(2.1) rotate(-25deg)'},{opacity:1,transform:`translate(${distance*.7}px,45px) scale(2.7) rotate(340deg)`}],450,{fill:'forwards'})
-      ]);
-      pose('rest'); ui.projectile.style.opacity='0'; bossHp=0; health();const finalImpact=sounds.play('boom',{volume:.35});
+      game.dataset.finisherStage='charge';
+      ui['move-banner'].textContent='';
+      await animate(tank,[{transform:`translateX(${stagedX}px) rotate(-2deg)`},{transform:`translateX(${contactX}px) rotate(1deg)`}],450,{easing:'cubic-bezier(.65,0,1,1)',fill:'forwards'});
+      game.dataset.finisherStage='flight';ui.boss.classList.add('tank-victim');
+      bossHp=0;health();const finalImpact=sounds.play('boom',{volume:.35});
       const flash=document.createElement('div');flash.className='flash';ui.arena.append(flash);setTimeout(()=>flash.remove(),250);
-      ui.impact.style.left='61%';ui.impact.style.top=(ui.boss.offsetTop+ui.boss.offsetHeight*.3)+'px';ui.impact.textContent='QUÁ TAY!';meme('hurt','boss');
+      ui.impact.style.left='48%';ui.impact.style.top=(ui.boss.offsetTop+ui.boss.offsetHeight*.3)+'px';ui.impact.textContent='TÔNG BAY!';meme('hurt','boss');
       ui.arena.classList.add('shake');
+      ui['move-banner'].textContent='TẠM BIỆT GIÁO TRÌNH…';
+      const scream=sounds.play('disappearing-scream',{volume:.7});
+      const fly=Math.max(ui.arena.clientWidth*.85,480);
+      // Sample a curved launch: kick up/back, arc overhead, then tumble out right.
+      const flightFrames=Array.from({length:33},(_,i)=>{
+        const t=i/32,u=1-t;
+        const x=fly*(3*u*u*t*-.35+3*u*t*t*.3+t*t*t);
+        const y=ui.arena.clientHeight*(3*u*u*t*-.5+3*u*t*t*-.78+t*t*t*-.05);
+        return {offset:t,opacity:t<.8?1:(1-t)/.2,transform:`translate(${x}px,${y}px) rotate(${3+1980*Math.pow(t,.85)}deg) scale(${1-.85*t})`};
+      });
       await Promise.all([
         redHit(ui.boss),
         animate(ui.impact,[{opacity:1,transform:'scale(1.6) rotate(-9deg)'},{opacity:0,transform:'translateY(-30px) scale(1.1) rotate(7deg)'}],650),
-        animate(ui.boss,[{transform:'rotate(0) scale(1)'},{transform:'rotate(-18deg) scale(1.3,.65)'},{transform:'translate(10px,-25px) rotate(20deg) scale(.85,1.15)'}],220,{fill:'forwards'})
+        animate(ui.boss,flightFrames,1650,{easing:'linear',fill:'forwards'}),
+        finalImpact?.finished,scream?.finished,
+        (async()=>{await animate(tank,[{transform:`translateX(${contactX}px) rotate(1deg)`},{transform:`translateX(${parkedX}px) rotate(-1deg)`}],650,{fill:'forwards'});body.classList.remove('revving');engine?.stop();})()
       ]);
-      await finalImpact?.finished;
-      ui.arena.classList.remove('shake'); ui['move-banner'].textContent='TẠM BIỆT GIÁO TRÌNH…';
-      const scream=sounds.play('disappearing-scream',{volume:.7});
-      const fly=Math.max(ui.arena.clientWidth*.7,380);
-      await Promise.all([animate(ui.boss,[{opacity:1,transform:'translate(0,-20px) rotate(20deg) scale(1)'},{opacity:1,transform:`translate(${fly*.35}px,-160px) rotate(500deg) scale(.75)`,offset:.4},{opacity:0,transform:`translate(${fly}px,-350px) rotate(1500deg) scale(.12)`}],2400,{fill:'forwards'}),scream?.finished]);
+      ui.arena.classList.remove('shake');
+      game.dataset.finisherStage='done';
       await audioWait(200); showResult(true);
     } else {
       ui['move-banner'].textContent='GIÁO TRÌNH DÙNG: ĐÈ CHO NHỚ!';
@@ -401,7 +431,7 @@
     if(state==='question'&&/^[1-4]$/.test(event.key)){event.preventDefault();ui.options.children[Number(event.key)-1]?.click();}
   });
   // Decode prop images before the first attack so they never enter as empty frames.
-  [...weapons.map(w=>w.src),'assets/player-weapons/rocket-round.png','assets/tmu-uniform-source.jpg','assets/boss-book.jpg','assets/boss-weapons/explosion-cutout.png','assets/boss-weapons/explosion-video-cutout.png',...bossMoves.map(m=>m.src),...Object.values(memes).flatMap(pool=>pool.map(m=>m.src||`assets/memes/${m.file}${['sigma-cat','sigma-smirk','shocked','rock','crying-cat'].includes(m.file)?'-face.png':'.jpg'}`))].forEach(src=>{const image=new Image();image.src=src;});
+  [...weapons.map(w=>w.src),'assets/player-weapons/tank.png','assets/player-weapons/rocket-round.png','assets/tmu-uniform-source.jpg','assets/boss-book.jpg','assets/boss-weapons/explosion-cutout.png','assets/boss-weapons/explosion-video-cutout.png',...bossMoves.map(m=>m.src),...Object.values(memes).flatMap(pool=>pool.map(m=>m.src||`assets/memes/${m.file}${['sigma-cat','sigma-smirk','shocked','rock','crying-cat'].includes(m.file)?'-face.png':'.jpg'}`))].forEach(src=>{const image=new Image();image.src=src;});
   new ResizeObserver(syncLayout).observe(ui.quiz);
   window.addEventListener('resize',syncLayout);
   health();setState('intro');idle(true);
