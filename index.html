@@ -1,0 +1,73 @@
+﻿<!doctype html>
+<html lang="vi" data-type="software">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="page-type" content="software">
+  <meta name="site-kind" content="gaming">
+  <meta name="theme-color" content="#eee9df">
+  <meta name="description" content="Sinh viên TMU đấu với giáo trình: 3 câu hỏi CNXHKH, 3 lượt ra đòn và một cú kết liễu hơi quá tay.">
+  <title>Đại chiến giáo trình · CNXHKH</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E📘%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css?v=12">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true"><defs><filter id="damage-red" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 .3  0 .06 0 0 0  0 0 .06 0 0  0 0 0 1 0"/></filter></defs></svg>
+  <a class="skip-link" href="#quiz">Đến câu hỏi</a>
+  <main class="game" data-enter>
+    <div class="audio-control"><details class="audio-menu" id="audio-menu"><summary aria-label="Chỉnh nhạc và âm lượng">♫ Nhạc</summary><div class="audio-panel"><label for="music-volume">Âm lượng nhạc nền</label><input id="music-volume" type="range" min="0" max="100" value="22"><label for="effects-volume">Âm lượng hiệu ứng</label><input id="effects-volume" type="range" min="0" max="100" value="75"><small><a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400011" target="_blank" rel="noopener">Monkeys Spinning Monkeys</a> — Kevin MacLeod · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></small></div></details><button id="sound" class="icon-button" aria-pressed="true" title="Tắt âm thanh">Âm thanh: bật</button></div>
+    <div class="title-row"><div><p class="eyebrow">BẢN QUYẾT ĐẤU TRƯỚC GIỜ THI</p><h1>Đại chiến <span>giáo trình.</span></h1></div><p class="margin-note">3 câu thôi.<br>Đừng để sách đè.</p></div>
+    <section class="battle" aria-label="Đấu trường sinh viên và giáo trình">
+      <div class="battle-photo" aria-hidden="true"></div>
+      <div class="hud">
+        <div class="fighter-status"><div class="status-title"><span>SINH VIÊN TMU</span><span id="player-hp-text">100 / 100</span></div><div class="health" role="progressbar" aria-label="Máu sinh viên" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="player-health"><i id="player-hp"></i></div><small>Còn thở là còn gỡ</small></div>
+        <div class="round-stamp" id="round">KHỞI ĐỘNG</div>
+        <div class="fighter-status boss-status"><div class="status-title"><span>GIÁO TRÌNH</span><span id="boss-hp-text">100 / 100</span></div><div class="health" role="progressbar" aria-label="Máu giáo trình" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="boss-health"><i id="boss-hp"></i></div><small>Trùm cuối của học phần</small></div>
+      </div>
+      <div class="arena" id="arena">
+        <div class="floor" aria-hidden="true"></div>
+        <div class="fighter player" id="player" role="img" aria-label="Sinh viên người que mặc áo TMU thật">
+          <svg viewBox="0 0 240 320" class="character" aria-hidden="true">
+            <defs><clipPath id="shirt-cut"><path d="M190 538 266 488 301 479 368 513 416 480 456 491 535 537 511 675 468 697 457 849 286 850 267 696 209 673Z"/></clipPath></defs>
+            <g class="legs" fill="none" stroke="#24221e" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="m101 216-9 41-29 39-24-1M141 216l9 40 27 36 25 2"/><path d="m100 218-5 38-29 40" stroke-width="2"/></g>
+            <g class="arms" fill="none" stroke="#24221e" stroke-width="7" stroke-linecap="round"><path d="m65 137-28 34 17 28M174 135l24 21 19-27"/></g>
+            <svg x="51" y="89" width="137" height="141" viewBox="175 475 380 390"><image href="assets/tmu-uniform-source.jpg" width="1600" height="1000" clip-path="url(#shirt-cut)"/></svg>
+            <path d="m112 86-2 13m21-14 2 14" stroke="#24221e" stroke-width="6"/>
+            <g class="head"><path d="M153 58c3 23-13 33-34 31S84 74 86 54s13-32 33-30 35 14 34 34Z" fill="#faf7ec" stroke="#24221e" stroke-width="4"/><path d="m87 44 9-15 3 8 9-16 6 10 12-11 3 10 11-4" fill="none" stroke="#24221e" stroke-width="3" stroke-linecap="round"/><path d="m106 53 1 6m24-6-1 6m-19 15 16-2" fill="none" stroke="#24221e" stroke-width="4" stroke-linecap="round"/></g>
+          </svg>
+          <span class="held-prop" id="held-prop"></span>
+          <img class="meme-face" id="player-meme" alt="" hidden>
+        </div>
+        <div class="fighter boss" id="boss" role="img" aria-label="Giáo trình thật với mắt và tay chân que">
+          <svg viewBox="0 0 250 320" class="character" aria-hidden="true">
+            <g class="boss-limbs" fill="none" stroke="#24221e" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="m72 116-39 29-14-30m161 2 28 39 19-13M97 218l-15 47-22 30-26-1m114-75 20 45 18 26 28 4"/></g>
+            <g class="book-body"><path d="m58 42 142-6 8 184-144 6Z" fill="#224f72" stroke="#24221e" stroke-width="3"/><image href="assets/boss-book.jpg" x="58" y="37" width="142" height="184" preserveAspectRatio="none" transform="rotate(-3 129 129)"/><path d="m60 43 3 175 139-6" fill="none" stroke="#24221e" stroke-width="2"/>
+              <g class="boss-eyes"><ellipse cx="100" cy="104" rx="17" ry="19" fill="white" stroke="#24221e" stroke-width="3"/><ellipse cx="146" cy="100" rx="18" ry="16" fill="white" stroke="#24221e" stroke-width="3"/><circle cx="95" cy="108" r="6"/><circle cx="140" cy="102" r="6"/><path d="m81 82 32 5m17-11 32 8" stroke="#24221e" stroke-width="5"/></g><path d="m105 138 38-3-10 19-22-1Z" fill="#24221e"/><path d="m111 137 2 7 20-2 3-6" fill="white"/></g>
+          </svg>
+          <img class="meme-face" id="boss-meme" alt="" hidden>
+        </div>
+        <div class="projectile" id="projectile" aria-hidden="true"></div>
+        <div class="boss-weapon" id="boss-weapon" aria-hidden="true" hidden></div>
+        <div class="combat-effects" id="combat-effects" aria-hidden="true"></div>
+        <div class="impact" id="impact" aria-hidden="true">BỐP!</div>
+        <div class="move-banner" id="move-banner" aria-live="polite"></div>
+        <div class="intro-overlay" id="intro"><div class="intro-paper"><span class="tape" aria-hidden="true"></span><p class="eyebrow">SINH VIÊN vs. GIÁO TRÌNH</p><h2>Kiến thức là<br><em>vũ khí.</em> Thiệt.</h2><p>Đúng thì bạn đánh. Sai thì sách đánh.<br>Đúng ít nhất 2/3 câu để thắng.</p><button class="primary-button" id="start">Vào trận <span>↗</span></button><small>3 lượt · đạo cụ ngẫu nhiên · không giới hạn giờ</small></div></div>
+        <div class="result-overlay" id="result" hidden><div class="result-paper"><p class="eyebrow" id="result-label">HẾT GIỜ GÁY</p><h2 id="result-title"></h2><p id="result-copy"></p><div id="result-score"></div><button class="primary-button" id="replay">Tái đấu <span>↻</span></button><button class="text-button" id="review-toggle" aria-expanded="false">Xem lại đáp án</button></div></div>
+      </div>
+    </section>
+    <section class="quiz-paper" id="quiz" aria-labelledby="question" tabindex="-1">
+      <div class="quiz-heading"><span class="question-number" id="question-number">LUẬT CHƠI</span><span class="keyboard-note">Phím 1–4 để chọn</span></div>
+      <h2 id="question">Ba câu hỏi. Một cuộc chiến với giáo trình.</h2>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback" aria-live="polite" hidden></div>
+      <div class="quiz-actions"><p id="quiz-hint">Trả lời đúng để ra chiêu bằng đạo cụ vừa bốc được.</p><button class="next-button" id="next" hidden>Lượt tiếp →</button></div>
+    </section>
+    <section class="review" id="review" aria-label="Xem lại câu hỏi" hidden></section>
+    <footer><span>Vẽ hơi lệch. Kiến thức phải chuẩn.</span><a href="assets/SOURCES.md" target="_blank" rel="noopener">Nguồn ảnh ↗</a></footer>
+  </main>
+  <script src="script.js"></script>
+  <script src="sound.js?v=9"></script>
+  <script src="game.js?v=10"></script>
+</body>
+</html>
+
