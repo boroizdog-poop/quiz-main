@@ -89,3 +89,6 @@ h1,h2,.move-banner,.impact,.round-stamp,.option-key,.grade-shot,.result-paper #r
 .shock-ring{position:absolute;width:160px;height:60px;border:7px solid white;outline:3px solid #111;border-radius:43% 57% 45% 55%;pointer-events:none}
 
 .held-prop.weapon-rocket{width:125%;left:20%;top:26%}.battle.busy .held-prop.weapon-rocket{opacity:1}
+.intro-paper small{font-size:20px}
+.intro-paper p:not(.eyebrow){font-size:26px}
+.intro-paper #start{font-size:20px}
