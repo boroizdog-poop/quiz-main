@@ -69,7 +69,7 @@ window.GameAudio = (() => {
     media.addEventListener('ended',()=>stop(voice,'ended'),{once:true});
     media.addEventListener('error',()=>{fail(name,media.error);stop(voice,'error');},{once:true});
     if(offset)media.currentTime=offset;
-    media.play().then(()=>{if(voices.has(voice))record(name,{volume:media.volume,rate:media.playbackRate,phase:voice.phase});}).catch(error=>{
+    media.play().then(()=>{if(voices.has(voice))record(name,{volume:media.volume,rate:media.playbackRate,phase:voice.phase,offset});}).catch(error=>{
       if(error.name!=='AbortError')fail(name,error);stop(voice,'error');
     });
     duck(name==='yay'?3400:1100,name==='yay'?.18:.35);

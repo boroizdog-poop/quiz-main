@@ -54,3 +54,5 @@ Nguồn ảnh ở [assets/SOURCES.md](assets/SOURCES.md). Ảnh tải về phụ
 ```
 
 Kiểm tra thứ tự cố định A–C–B, khóa chọn khi đang đánh, điểm, thắng/thua, xem lại đáp án, chơi lại, tim pixel, mặt meme, cả ba chiêu boss và hiệu ứng đỏ của hai nhân vật. Kiểm tra nhạc đầu trận không lẫn hiệu ứng, hiệu ứng không tràn sang lúc đọc câu hỏi, tắt/bật, hai thanh âm lượng, từng tiếng hiệu ứng và giải mã toàn bộ MP3 đang dùng để phát hiện file lỗi / im lặng. Kiểm tra cả khi mở trực tiếp `index.html`. Chỉ kiểm tra trên máy tính (1440×900, 1280×720 và 1024×768) theo yêu cầu. Kết quả và ảnh chụp nằm trong `shots/`.
+
+Ti?ng yay b?t ??u ngay khi b?ng th?ng hi?n l?n, ph?t t? gi?y 2,8 c?a file ?? b? qua ph?n ??u v? kho?ng ngh?. C?c ti?ng kh?c gi? nguy?n.

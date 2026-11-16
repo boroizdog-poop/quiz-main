@@ -33,6 +33,9 @@ let chrome,server,socket;
   await c('Runtime.enable');await c('Page.enable');await c('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
   if(process.argv.includes('--short-desktop'))await c('Emulation.setDeviceMetricsOverride',{width:1280,height:720,deviceScaleFactor:1,mobile:false});
   await c('Page.navigate',{url:`http://127.0.0.1:${port}/`});await until('!!document.getElementById("start")');
+  if(process.argv.includes('--inspect-yay')){
+    console.log(await ev('(async()=>{const c=new AudioContext();const b=await c.decodeAudioData(await(await fetch("assets/audio/yay.mp3")).arrayBuffer());const a=b.getChannelData(0),r=b.sampleRate;const peaks=Array.from({length:Math.ceil(b.duration*10)},(_,i)=>{let p=0;for(let j=Math.floor(i*r/10);j<Math.min(a.length,(i+1)*r/10);j++)p=Math.max(p,Math.abs(a[j]));return [i/10,Math.round(p*1000)/1000]});await c.close();return {duration:b.duration,peaks}})()'));return;
+  }
   await ev('document.fonts.ready');await c('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
   assert.equal(await ev('window.GameAudio.status.started'),true,'Music is initialized on page entry');
   await ev('window.GameAudio.begin();window.GameAudio.setPhase("animating");window.GameAudio.play("get-out");document.getElementById("sound").click();document.getElementById("sound").click()');
@@ -80,6 +83,7 @@ let chrome,server,socket;
     throw new Error('Hammer was not offered');
   }
   if(process.argv.includes('--tank-finisher')){
+    await ev('(()=>{const p=document.getElementById("result");const o=new MutationObserver(()=>{if(!p.hidden){window.__resultShown=performance.now();o.disconnect()}});o.observe(p,{attributes:true,attributeFilter:["hidden"]})})()');
     await ev('document.getElementById("sound").click()');
     for(let round=0;round<3;round++){
       await until('document.querySelector(".game").dataset.state==="question"');
@@ -100,6 +104,9 @@ let chrome,server,socket;
     await until('document.querySelector(".game").dataset.finisherStage==="flight"');
     await sleep(220);await screenshot('tank-flight.png');
     await until('!document.getElementById("result").hidden');
+    await until('window.GameAudio.status.recent.some(e=>e.name==="yay")');
+    const cheer=await ev('(()=>{const y=window.GameAudio.status.recent.filter(e=>e.name==="yay").at(-1);return {offset:y.offset,delay:y.time-window.__resultShown,phase:y.phase}})()');
+    assert.equal(cheer.offset,2.8,'Skip the quiet lead-in before the cheer');assert.equal(cheer.phase,'result');assert.ok(cheer.delay>=0&&cheer.delay<250,'Cheer starts with the victory panel');console.log('Yay delay after victory panel:',Math.round(cheer.delay)+'ms');
     assert.equal(await ev('window.GameAudio.status.activeEffects===1'),true,'Only victory cheer remains after the engine fades');
     assert.ok(await ev('window.GameAudio.status.completions.some(e=>e.name==="tank-engine"&&e.reason==="faded")'),'Tank engine fades after the charge');
     assert.deepEqual(await ev('window.GameAudio.status.failures'),[]);

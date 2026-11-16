@@ -430,8 +430,8 @@
   }
   function showResult(won) {
     setState('result');battle.classList.remove('busy','finishing');ui['move-banner'].textContent='';
-    if(won)sounds.play('yay',{volume:.85});
     ui.result.hidden=false;ui.round.textContent=won?'QUA MÔN!':'TÁI ĐẤU?';
+    if(won)sounds.play('yay',{volume:.85,offset:2.8});
     ui['result-label'].textContent=won?'GIÁO TRÌNH ĐÃ RỜI CUỘC CHƠI':'GIÁO TRÌNH 1 — SINH VIÊN 0';
     ui['result-title'].textContent=won?(score===3?'QUÁ LÀ THUỘC!':'QUA MÔN RỒI!'):'BỊ SÁCH ĐÈ.';
     ui['result-copy'].textContent=won?'Boss đang trên đường tới một học kỳ khác.':'Không sao. Xem lại đáp án, đứng dậy làm ván nữa.';
