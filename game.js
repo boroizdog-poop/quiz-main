@@ -253,6 +253,37 @@
     ]);
     ui.arena.classList.remove('shake');
   }
+  async function hammerBonk() {
+    const held=ui['held-prop'];
+    const lunge=Math.max(40,ui.boss.offsetLeft+ui.boss.offsetWidth*.5-ui.player.offsetLeft-ui.player.offsetWidth*1.61);
+    const lift=Math.max(60,Math.min(140,ui.player.offsetTop-85));
+    const hitY=ui.boss.offsetTop+ui.boss.offsetHeight*.24-ui.player.offsetTop-ui.player.offsetHeight*.352;
+    battle.classList.add('hammer-bonk');ui.player.classList.add('hammer-bonking');
+    game.dataset.hammerStage='jump';
+    arms.setAttribute('d','M65 137 130 112 193 94M174 135 190 109 206 96');
+    await Promise.all([
+      animate(ui.player,[{transform:'rotate(-2deg)'},{transform:'translateY(12px) scale(1.05,.92)',offset:.2},{transform:`translate(${lunge}px,${-lift}px) rotate(-7deg)`}],600,{fill:'forwards'}),
+      animate(held,[{transform:'rotate(155deg)'},{transform:'rotate(50deg)',offset:.4},{transform:'rotate(50deg)'}],600,{fill:'forwards'})
+    ]);
+    game.dataset.hammerStage='swing';arms.setAttribute('d','M65 137 128 126 193 94M174 135 207 124 206 96');
+    await Promise.all([
+      animate(ui.player,[{transform:`translate(${lunge}px,${-lift}px) rotate(-7deg)`},{transform:`translate(${lunge}px,${hitY}px) rotate(0)`}],200,{easing:'cubic-bezier(.6,0,1,1)',fill:'forwards'}),
+      animate(held,[{transform:'rotate(50deg)'},{transform:'rotate(210deg)'}],200,{easing:'cubic-bezier(.7,0,1,1)',fill:'forwards'})
+    ]);
+    game.dataset.hammerStage='bonk';bossHp=Math.max(0,bossHp-34);health();
+    const shock=effectNode('div','shock-ring',ui.boss.offsetLeft+ui.boss.offsetWidth*.5,ui.boss.offsetTop+ui.boss.offsetHeight*.24);
+    await Promise.all([
+      impact(ui.boss,weapon.impact+' −34',34),
+      animate(shock,[{opacity:1,transform:'translate(-50%,-50%) scale(.2)'},{opacity:0,transform:'translate(-50%,-50%) scale(2.1)'}],650)
+    ]);shock.remove();
+    game.dataset.hammerStage='return';
+    await Promise.all([
+      animate(ui.player,[{transform:`translate(${lunge}px,${hitY}px)`},{transform:`translate(${lunge*.5}px,${-lift*.6}px) rotate(-9deg)`,offset:.5},{transform:'rotate(-2deg)'}],500),
+      animate(held,[{transform:'rotate(210deg)'},{transform:'rotate(155deg)'}],500)
+    ]);
+    ui.player.style.removeProperty('transform');held.style.removeProperty('transform');
+    ui.player.classList.remove('hammer-bonking');battle.classList.remove('hammer-bonk');delete game.dataset.hammerStage;
+  }
   async function attack(correct) {
     battle.classList.add('busy'); idle(false);
     if (correct) {
@@ -267,6 +298,9 @@
         ]);
       }
       await wait(330);
+      if(weapon.kind==='hammer'){
+        await hammerBonk();
+      }else{
       const startX=ui.player.offsetLeft+ui.player.offsetWidth*(weapon.kind==='rocket'?1.1:.72);
       const startY=ui.player.offsetTop+ui.player.offsetHeight*(weapon.kind==='rocket'?.4:.25);
       const dx=ui.boss.offsetLeft+ui.boss.offsetWidth*.4-startX-90;
@@ -284,8 +318,6 @@
           animate(ui.player,[{transform:'rotate(-2deg)'},{transform:'translateX(-30px) rotate(-13deg)'},{transform:'rotate(-2deg)'}],350),
           animate(ui.projectile,[{opacity:1,transform:'translate(0,0) scale(.9)'},{opacity:1,transform:`translate(${dx}px,${dy}px) scale(1.2)`}],430,{easing:'cubic-bezier(.3,0,.8,.4)'})
         ]);muzzle.remove();
-      }else if(weapon.kind==='hammer'){
-        await animate(ui.projectile,[{opacity:1,transform:'translate(-90px,-150px) rotate(150deg) scale(1.25)'},{opacity:1,transform:`translate(${dx*.55}px,-210px) rotate(225deg) scale(1.6)`,offset:.45},{opacity:1,transform:`translate(${dx-65}px,${dy-50}px) rotate(330deg) scale(1.8)`}],650,{easing:'cubic-bezier(.6,0,.9,.3)',fill:'forwards'});
       }else{
         await animate(ui.projectile,[{opacity:1,transform:'translate(0,0) rotate(0) scale(1.2)'},{opacity:1,transform:`translate(${dx*.5}px,-100px) rotate(540deg) scale(1.5)`,offset:.5},{opacity:1,transform:`translate(${dx-35}px,${dy-40}px) rotate(1080deg) scale(1.6)`}],650,{fill:'forwards'});
       }
@@ -298,6 +330,7 @@
         const shock=effectNode('div','shock-ring',bx,ui.boss.offsetTop+ui.boss.offsetHeight*.85);
         await Promise.all([impact(ui.boss,weapon.impact+' −34',34),animate(shock,[{opacity:1,transform:'translate(-50%,-50%) scale(.1)'},{opacity:0,transform:'translate(-50%,-50%) scale(3)'}],650)]);shock.remove();
         if(weapon.kind==='pan')await animate(ui.projectile,[{opacity:1,transform:`translate(${dx-35}px,${dy-40}px) rotate(1080deg) scale(1.6)`},{opacity:1,transform:'translate(0,0) rotate(1800deg) scale(.8)'},{opacity:0,transform:'scale(.5)'}],400);
+      }
       }
     } else {
       meme('attack','boss',false);

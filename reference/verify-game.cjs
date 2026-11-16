@@ -53,6 +53,32 @@ let chrome,server,socket;
   await ev('window.GameAudio.play("get-out")');await sleep(100);
   assert.equal(await ev('window.GameAudio.status.activeEffects'),0,'SFX rejected while reading a question');
   assert.equal(await ev('document.getElementById("music-choice")===null'),true,'Mixed reference audio cannot be selected as background');
+  if(process.argv.includes('--hammer-bonk')){
+    for(let round=0;round<3;round++){
+      await until('document.querySelector(".game").dataset.state==="question"');
+      const hammer=await ev('document.querySelector(".game").dataset.playerWeapon==="hammer"');
+      if(hammer)await c('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
+      const startTime=await ev('performance.now()');
+      await ev(`(()=>{const q=questionPool[${round}];[...document.querySelectorAll('.option')].find(b=>b.dataset.answer===q.answer).click()})()`);
+      if(hammer){
+        await until('document.querySelector(".game").dataset.hammerStage==="jump"');await sleep(400);
+        assert.ok(await ev('new DOMMatrix(getComputedStyle(document.getElementById("player")).transform).m42<-15'),'Student jumps with the hammer');
+        assert.ok(await ev('Number(getComputedStyle(document.getElementById("held-prop")).opacity)>.9'),'Hammer stays in the hand');
+        await screenshot('hammer-jump.png');
+        await until('document.querySelector(".game").dataset.hammerStage==="bonk"');
+        assert.ok(await ev('document.getElementById("boss").classList.contains("damage-flash")'),'Boss flashes red on the bonk');
+        await sleep(100);await screenshot('hammer-bonk.png');
+        await until('!document.getElementById("next").hidden');
+        const hits=await ev(`window.GameAudio.status.recent.filter(e=>e.time>=${startTime}&&e.name!=="music-start")`);
+        assert.deepEqual(hits.map(e=>e.name),['doge-bonk'],'Only the existing Doge Bonk sound plays');assert.equal(hits[0].rate,1);assert.equal(hits[0].volume,.65*.75);
+        assert.equal(await ev('document.getElementById("player").style.transform'),'','Student returns home after the bonk');
+        assert.equal(await ev('document.getElementById("held-prop").style.transform'),'','Held hammer resets after attack');
+        assert.equal(errors.length,0,JSON.stringify(errors));console.log('PASS jumping held hammer, boss hit, original Doge Bonk at unchanged volume/rate, clean return');return;
+      }
+      await until('!document.getElementById("next").hidden');await ev('document.getElementById("next").click()');
+    }
+    throw new Error('Hammer was not offered');
+  }
   if(process.argv.includes('--tank-finisher')){
     await ev('document.getElementById("sound").click()');
     for(let round=0;round<3;round++){
@@ -168,7 +194,8 @@ let chrome,server,socket;
       assert.ok(await ev('(()=>{const b=document.querySelector(".blast-image");return b&&b.complete&&b.naturalWidth>0&&b.src.includes("explosion-video-cutout")&&getComputedStyle(b).filter==="none"})()'),'RPG blast uses the loaded cutout from the reference video without glow');
       await screenshot('explosion-cutout.png');
     }
-    if(studentWeapon!=='rocket')assert.ok(await ev('Number(getComputedStyle(document.getElementById("projectile")).opacity)>.9'),'Melee weapon remains visible at impact');
+    if(studentWeapon==='pan')assert.ok(await ev('Number(getComputedStyle(document.getElementById("projectile")).opacity)>.9'),'Pan remains visible at impact');
+    else if(studentWeapon==='hammer')assert.ok(await ev('Number(getComputedStyle(document.getElementById("held-prop")).opacity)>.9'),'Hammer stays held during the bonk');
     else assert.ok(await ev('Number(getComputedStyle(document.getElementById("held-prop")).opacity)>.9'),'RPG stays held while firing');
     await screenshot('student-'+studentWeapon+'.png');
     if(round===0){
